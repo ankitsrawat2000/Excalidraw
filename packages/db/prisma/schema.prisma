@@ -1,0 +1,46 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User{
+  id       String @id @default(uuid())
+  email    String @unique
+  password String
+  name     String
+  photo    String? //? makes it optional
+  rooms    Room[]
+  //an User can have multiple rooms (so rooms is an array of Room Schema)
+  chats    Chat[]
+  //every user would have sent multiple chat messages
+}
+
+model Room{
+  id        Int      @id @default(autoincrement())
+  slug      String   @unique
+  createdAt DateTime @default(now())
+  adminId   String
+  admin     User      @relation(fields: [adminId], references: [id]) //add fkey Room(adminId) to User(id)
+  //relationship between adminId and User
+  //a single room can have a single admin(if many admin then many-to-many relationship)
+  chats     Chat[]
+  //every chat message will have one room
+  //every room can have multiple chat messages
+
+}
+
+model Chat{
+  id      Int       @id @default(autoincrement())
+  roomId  Int
+  message String
+  userId  String
+  room    Room      @relation(fields: [roomId], references: [id])
+  //every chat will be part of a room
+  user    User      @relation(fields: [userId], references: [id])
+  //every chat will have associated user
+}
+
