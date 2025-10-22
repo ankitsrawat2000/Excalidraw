@@ -1,4 +1,3 @@
-
 import { useEffect, useRef, useState } from "react";
 import { IconButton } from "./IconButton";
 import { Circle, Pencil, RectangleHorizontalIcon } from "lucide-react";
@@ -32,15 +31,12 @@ export function Canvas({
             //when that happes we were initializing game twice, we had two set of 
             //handlers.. but on only one we were calling setTool()
         }
-
-       
     }, [canvasRef]);
 
     return <div style={{
         height: "100vh", //current height of window
         overflow:"hidden" //to disable scrolling
     }}>
-        
         <canvas ref={canvasRef} width={window.innerWidth} height={window.innerHeight} ></canvas>
         <Topbar setSelectedTool={setSelectedTool} selectedTool={selectedTool}/>
     </div>
