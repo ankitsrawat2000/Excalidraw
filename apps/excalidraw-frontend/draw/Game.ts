@@ -28,9 +28,15 @@ export class Game {
   private clicked: boolean;
   private startX = 0;
   private startY = 0;
-  private selectedTool: Tool = "circle";
+  private selectedTool: Tool = null;
   private currentPath: { x: number; y: number }[] = [];
   socket: WebSocket;
+
+  // 🆕 viewport transform
+  private viewportTransform = { x: 0, y: 0, scale: 1 };
+  private isPanning = false;
+  private lastPanX = 0;
+  private lastPanY = 0;
 
   constructor(canvas: HTMLCanvasElement, roomId: string, socket: WebSocket) {
     this.canvas = canvas;
@@ -43,12 +49,15 @@ export class Game {
     this.init();
     this.initHandlers();
     this.initMouseHandlers();
+    this.initPanZoomHandlers(); // 🆕
+
   }
 
   destroy() {
     this.canvas.removeEventListener("mousedown", this.mouseDownHandler);
     this.canvas.removeEventListener("mouseup", this.mouseUpHandler);
     this.canvas.removeEventListener("mousemove", this.mouseMoveHandler);
+    this.canvas.removeEventListener("wheel", this.onMouseWheel); // 🆕
   }
 
   setTool(tool: "circle" | "pencil" | "rect") {
@@ -73,9 +82,14 @@ export class Game {
   }
 
   clearCanvas() {
+    const { x, y, scale } = this.viewportTransform;
+
+    // Reset and apply transform
+    this.ctx.setTransform(1, 0, 0, 1, 0, 0);
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    this.ctx.setTransform(scale, 0, 0, scale, x, y);
     this.ctx.fillStyle = "rgba(0,0,0)";
-    this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+    this.ctx.fillRect(-x / scale, -y / scale, this.canvas.width / scale, this.canvas.height / scale);
 
     this.existingShapes.forEach((shape) => {
       this.ctx.strokeStyle = "white";
@@ -101,6 +115,64 @@ export class Game {
       }
     });
   }
+
+  onMouseWheel = (e: WheelEvent) => {
+    e.preventDefault();
+    const { x, y, scale } = this.viewportTransform;
+    const rect = this.canvas.getBoundingClientRect();
+    const localX = e.clientX - rect.left;
+    const localY = e.clientY - rect.top;
+
+    const delta = -e.deltaY * 0.001;
+    const newScale = Math.min(Math.max(0.2, scale + delta), 5); // clamp scale 0.2–5
+
+    const newX = localX - (localX - x) * (newScale / scale);
+    const newY = localY - (localY - y) * (newScale / scale);
+
+    this.viewportTransform = { x: newX, y: newY, scale: newScale };
+    this.clearCanvas();
+  };
+
+  // 🆕 Zoom controls (for buttons)
+  zoomIn() {
+    this.viewportTransform.scale = Math.min(this.viewportTransform.scale * 1.1, 5);
+    this.clearCanvas();
+  }
+  zoomOut() {
+    this.viewportTransform.scale = Math.max(this.viewportTransform.scale / 1.1, 0.2);
+    this.clearCanvas();
+  }
+
+  // 🆕 Pan (right mouse drag or hold space)
+  panStart = (e: MouseEvent) => {
+    if (e.button === 1 || e.button === 2 || e.shiftKey || e.metaKey) {
+      this.isPanning = true;
+      this.lastPanX = e.clientX;
+      this.lastPanY = e.clientY;
+    }
+  };
+  panMove = (e: MouseEvent) => {
+    if (!this.isPanning) return;
+    const dx = e.clientX - this.lastPanX;
+    const dy = e.clientY - this.lastPanY;
+    this.viewportTransform.x += dx;
+    this.viewportTransform.y += dy;
+    this.lastPanX = e.clientX;
+    this.lastPanY = e.clientY;
+    this.clearCanvas();
+  };
+  panEnd = () => {
+    this.isPanning = false;
+  };
+
+  initPanZoomHandlers() {
+    this.canvas.addEventListener("wheel", this.onMouseWheel);
+    this.canvas.addEventListener("mousedown", this.panStart);
+    this.canvas.addEventListener("mousemove", this.panMove);
+    this.canvas.addEventListener("mouseup", this.panEnd);
+    this.canvas.addEventListener("mouseleave", this.panEnd);
+  }
+
 
   mouseDownHandler = (e: MouseEvent) => {
     this.clicked = true;

@@ -3,7 +3,7 @@ import { IconButton } from "./IconButton";
 import { Circle, Pencil, RectangleHorizontalIcon } from "lucide-react";
 import { Game } from "@/draw/Game";
 
-export type Tool = "circle" | "rect" | "pencil";
+export type Tool = "circle" | "rect" | "pencil" | null;
 export function Canvas({
     roomId,
     socket
@@ -14,10 +14,10 @@ export function Canvas({
 
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const [game, setGame] = useState<Game>();
-    const [selectedTool, setSelectedTool] = useState<Tool>("circle");
+    const [selectedTool, setSelectedTool] = useState<Tool>(null);
 
     useEffect(() => {
-        game?.setTool(selectedTool);
+        if (selectedTool) game?.setTool(selectedTool);
     }, [selectedTool, game])
 
     useEffect(()=>{
@@ -46,6 +46,15 @@ function Topbar({selectedTool, setSelectedTool}:{
     selectedTool: Tool,
     setSelectedTool: (s: Tool) => void
 }){
+    const [gameInstance, setGameInstance] = useState<Game | null>(null);
+
+    // optional: expose zoom controls
+    useEffect(() => {
+      const canvas = document.querySelector("canvas") as HTMLCanvasElement;
+      if (canvas && (canvas as any).__game__) {
+        setGameInstance((canvas as any).__game__);
+      }
+    }, []);
     return <div style={{
         position: "fixed",
         top: 10,
@@ -66,6 +75,8 @@ function Topbar({selectedTool, setSelectedTool}:{
             <IconButton onClick={() => {
                 setSelectedTool("circle")
             }} activated={selectedTool === "circle"} icon={<Circle/>}></IconButton>
+            <IconButton activated={false} onClick={() => gameInstance?.zoomIn()} icon={<span style={{ fontSize: 20 }}>＋</span>} />
+            <IconButton  activated={false} onClick={() => gameInstance?.zoomOut()} icon={<span style={{ fontSize: 20 }}>－</span>} />
         </div>
     </div>
 }
