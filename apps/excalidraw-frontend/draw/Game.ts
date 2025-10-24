@@ -3,22 +3,22 @@ import { Tool } from "@/components/Canvas";
 
 type Shape =
   | {
-      type: "rect";
-      x: number;
-      y: number;
-      width: number;
-      height: number;
-    }
+    type: "rect";
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  }
   | {
-      type: "circle";
-      centerX: number;
-      centerY: number;
-      radius: number;
-    }
+    type: "circle";
+    centerX: number;
+    centerY: number;
+    radius: number;
+  }
   | {
-      type: "pencil";
-      points: { x: number; y: number }[];
-    };
+    type: "pencil";
+    points: { x: number; y: number }[];
+  };
 
 export class Game {
   private canvas: HTMLCanvasElement;
@@ -38,6 +38,9 @@ export class Game {
   private lastPanX = 0;
   private lastPanY = 0;
 
+  private spacePressed = false;
+
+
   constructor(canvas: HTMLCanvasElement, roomId: string, socket: WebSocket) {
     this.canvas = canvas;
     this.ctx = canvas.getContext("2d")!;
@@ -51,6 +54,9 @@ export class Game {
     this.initMouseHandlers();
     this.initPanZoomHandlers(); // 🆕
 
+    window.addEventListener("keydown", this.onKeyDown);
+    window.addEventListener("keyup", this.onKeyUp);
+
   }
 
   destroy() {
@@ -58,11 +64,25 @@ export class Game {
     this.canvas.removeEventListener("mouseup", this.mouseUpHandler);
     this.canvas.removeEventListener("mousemove", this.mouseMoveHandler);
     this.canvas.removeEventListener("wheel", this.onMouseWheel); // 🆕
+
+    window.removeEventListener("keydown", this.onKeyDown);
+    window.removeEventListener("keyup", this.onKeyUp);
+
   }
 
-  setTool(tool: "circle" | "pencil" | "rect") {
+  setTool(tool: "circle" | "pencil" | "rect" | "hand" | null) {
     this.selectedTool = tool;
+    this.clicked = false;
+    this.isPanning = false;
+  
+    if (tool === "hand") {
+      this.canvas.style.cursor = "grab";
+    } else {
+      this.canvas.style.cursor = "default";
+      this.spacePressed = false;
+    }
   }
+  
 
   async init() {
     this.existingShapes = await getExistingShapes(this.roomId);
@@ -116,6 +136,22 @@ export class Game {
     });
   }
 
+  onKeyDown = (e: KeyboardEvent) => {
+    if (e.code === "Space") {
+      e.preventDefault();
+      this.spacePressed = true;
+      this.canvas.style.cursor = "grab";
+    }
+  };
+
+  onKeyUp = (e: KeyboardEvent) => {
+    if (e.code === "Space") {
+      this.spacePressed = false;
+      this.canvas.style.cursor = "default";
+    }
+  };
+
+
   onMouseWheel = (e: WheelEvent) => {
     e.preventDefault();
     const { x, y, scale } = this.viewportTransform;
@@ -145,12 +181,17 @@ export class Game {
 
   // 🆕 Pan (right mouse drag or hold space)
   panStart = (e: MouseEvent) => {
-    if (e.button === 1 || e.button === 2 || e.shiftKey || e.metaKey) {
+    const isHandTool = this.selectedTool === "hand";
+    if (this.spacePressed || isHandTool) {
       this.isPanning = true;
       this.lastPanX = e.clientX;
       this.lastPanY = e.clientY;
+      this.canvas.style.cursor = "grabbing";
+    } else {
+      this.mouseDownHandler(e);
     }
   };
+
   panMove = (e: MouseEvent) => {
     if (!this.isPanning) return;
     const dx = e.clientX - this.lastPanX;
@@ -163,7 +204,11 @@ export class Game {
   };
   panEnd = () => {
     this.isPanning = false;
+    this.canvas.style.cursor =
+    this.selectedTool === "hand" ? "grab" :
+    this.spacePressed ? "grab" : "default";
   };
+
 
   initPanZoomHandlers() {
     this.canvas.addEventListener("wheel", this.onMouseWheel);
@@ -175,10 +220,14 @@ export class Game {
 
 
   mouseDownHandler = (e: MouseEvent) => {
+    if (this.spacePressed || this.isPanning) return;
     this.clicked = true;
     const rect = this.canvas.getBoundingClientRect();
-    this.startX = e.clientX - rect.left;
-    this.startY = e.clientY - rect.top;
+    const screenX = e.clientX - rect.left;
+    const screenY = e.clientY - rect.top;
+    const { x, y, scale } = this.viewportTransform;
+    this.startX = (screenX - x) / scale;
+    this.startY = (screenY - y) / scale;
 
     if (this.selectedTool === "pencil") {
       this.currentPath = [{ x: this.startX, y: this.startY }];
@@ -186,9 +235,16 @@ export class Game {
   };
 
   mouseUpHandler = (e: MouseEvent) => {
+    if (this.spacePressed || this.isPanning) return;
     this.clicked = false;
-    const width = e.clientX - this.startX;
-    const height = e.clientY - this.startY;
+    const rect = this.canvas.getBoundingClientRect();
+    const screenX = e.clientX - rect.left;
+    const screenY = e.clientY - rect.top;
+    const { x, y, scale } = this.viewportTransform;
+    const endX = (screenX - x) / scale;
+    const endY = (screenY - y) / scale;
+    const width = endX - this.startX;
+    const height = endY - this.startY;
     const selectedTool = this.selectedTool;
     let shape: Shape | null = null;
 
@@ -232,15 +288,21 @@ export class Game {
   };
 
   mouseMoveHandler = (e: MouseEvent) => {
+    if (this.spacePressed || this.isPanning) return;
+
     if (!this.clicked) return;
 
     const rect = this.canvas.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
+    const screenX = e.clientX - rect.left;
+    const screenY = e.clientY - rect.top;
+    const { x, y, scale } = this.viewportTransform;
+    const worldX = (screenX - x) / scale;
+    const worldY = (screenY - y) / scale;
+
 
     if (this.selectedTool === "rect" || this.selectedTool === "circle") {
-      const width = x - this.startX;
-      const height = y - this.startY;
+      const width = worldX - this.startX;
+      const height = worldY - this.startY;
       this.clearCanvas();
       this.ctx.strokeStyle = "white";
       if (this.selectedTool === "rect") {
@@ -256,7 +318,7 @@ export class Game {
       }
     } else if (this.selectedTool === "pencil") {
       // add to path
-      this.currentPath.push({ x, y });
+      this.currentPath.push({ x: worldX, y: worldY });
 
       // draw segment
       const len = this.currentPath.length;
@@ -264,7 +326,7 @@ export class Game {
         const prev = this.currentPath[len - 2];
         this.ctx.beginPath();
         this.ctx.moveTo(prev.x, prev.y);
-        this.ctx.lineTo(x, y);
+        this.ctx.lineTo(worldX, worldY);
         this.ctx.strokeStyle = "white";
         this.ctx.lineWidth = 2;
         this.ctx.stroke();

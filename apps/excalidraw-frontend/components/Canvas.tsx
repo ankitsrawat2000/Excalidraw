@@ -1,16 +1,16 @@
 import { useEffect, useRef, useState } from "react";
 import { IconButton } from "./IconButton";
-import { Circle, Pencil, RectangleHorizontalIcon } from "lucide-react";
+import { Circle, Pencil, RectangleHorizontalIcon, Plus, Minus, Hand } from "lucide-react";
 import { Game } from "@/draw/Game";
 
-export type Tool = "circle" | "rect" | "pencil" | null;
+export type Tool = "circle" | "rect" | "pencil" | "hand" | null;
 export function Canvas({
     roomId,
     socket
 }: {
-    roomId : string,
-    socket : WebSocket
-}){
+    roomId: string,
+    socket: WebSocket
+}) {
 
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const [game, setGame] = useState<Game>();
@@ -20,8 +20,8 @@ export function Canvas({
         if (selectedTool) game?.setTool(selectedTool);
     }, [selectedTool, game])
 
-    useEffect(()=>{
-        if(canvasRef.current){
+    useEffect(() => {
+        if (canvasRef.current) {
             const g = new Game(canvasRef.current, roomId, socket);
             setGame(g);
             return () => {
@@ -35,48 +35,47 @@ export function Canvas({
 
     return <div style={{
         height: "100vh", //current height of window
-        overflow:"hidden" //to disable scrolling
+        overflow: "hidden" //to disable scrolling
     }}>
         <canvas ref={canvasRef} width={window.innerWidth} height={window.innerHeight} ></canvas>
-        <Topbar setSelectedTool={setSelectedTool} selectedTool={selectedTool}/>
+        <Topbar setSelectedTool={setSelectedTool} selectedTool={selectedTool} game={game} />
     </div>
 }
 
-function Topbar({selectedTool, setSelectedTool}:{
+function Topbar({ selectedTool, setSelectedTool, game }: {
     selectedTool: Tool,
-    setSelectedTool: (s: Tool) => void
-}){
+    setSelectedTool: (s: Tool) => void,
+    game?: Game;
+}) {
     const [gameInstance, setGameInstance] = useState<Game | null>(null);
-
-    // optional: expose zoom controls
-    useEffect(() => {
-      const canvas = document.querySelector("canvas") as HTMLCanvasElement;
-      if (canvas && (canvas as any).__game__) {
-        setGameInstance((canvas as any).__game__);
-      }
-    }, []);
     return <div style={{
         position: "fixed",
         top: 10,
         left: 10
     }}>
         <div className="flex gap-t">
-            <IconButton 
+            <IconButton
+                onClick={() => setSelectedTool("hand")}
+                activated={selectedTool === "hand"}
+                icon={<Hand/>}
+            />
+
+            <IconButton
                 onClick={() => {
                     setSelectedTool("pencil")
                 }}
                 activated={selectedTool === "pencil"}
-                icon={<Pencil/>}>
+                icon={<Pencil />}>
             </IconButton>
             <IconButton onClick={() => {
                 setSelectedTool("rect")
             }
-            } activated={selectedTool === "rect"} icon={<RectangleHorizontalIcon/>}></IconButton>
+            } activated={selectedTool === "rect"} icon={<RectangleHorizontalIcon />}></IconButton>
             <IconButton onClick={() => {
                 setSelectedTool("circle")
-            }} activated={selectedTool === "circle"} icon={<Circle/>}></IconButton>
-            <IconButton activated={false} onClick={() => gameInstance?.zoomIn()} icon={<span style={{ fontSize: 20 }}>＋</span>} />
-            <IconButton  activated={false} onClick={() => gameInstance?.zoomOut()} icon={<span style={{ fontSize: 20 }}>－</span>} />
+            }} activated={selectedTool === "circle"} icon={<Circle />}></IconButton>
+            <IconButton activated={false} onClick={() => game?.zoomIn()} icon={<Plus/>} />
+            <IconButton activated={false} onClick={() => game?.zoomOut()} icon={<Minus/>} />
         </div>
     </div>
 }
