@@ -32,7 +32,6 @@ export class Game {
   private currentPath: { x: number; y: number }[] = [];
   socket: WebSocket;
 
-  // 🆕 viewport transform
   private viewportTransform = { x: 0, y: 0, scale: 1 };
   private isPanning = false;
   private lastPanX = 0;
@@ -52,8 +51,7 @@ export class Game {
     this.init();
     this.initHandlers();
     this.initMouseHandlers();
-    this.initPanZoomHandlers(); // 🆕
-
+    this.initPanZoomHandlers(); 
     window.addEventListener("keydown", this.onKeyDown);
     window.addEventListener("keyup", this.onKeyUp);
 
@@ -63,7 +61,7 @@ export class Game {
     this.canvas.removeEventListener("mousedown", this.mouseDownHandler);
     this.canvas.removeEventListener("mouseup", this.mouseUpHandler);
     this.canvas.removeEventListener("mousemove", this.mouseMoveHandler);
-    this.canvas.removeEventListener("wheel", this.onMouseWheel); // 🆕
+    this.canvas.removeEventListener("wheel", this.onMouseWheel);
 
     window.removeEventListener("keydown", this.onKeyDown);
     window.removeEventListener("keyup", this.onKeyUp);
@@ -104,7 +102,6 @@ export class Game {
   clearCanvas() {
     const { x, y, scale } = this.viewportTransform;
 
-    // Reset and apply transform
     this.ctx.setTransform(1, 0, 0, 1, 0, 0);
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
     this.ctx.setTransform(scale, 0, 0, scale, x, y);
@@ -169,7 +166,6 @@ export class Game {
     this.clearCanvas();
   };
 
-  // 🆕 Zoom controls (for buttons)
   zoomIn() {
     this.viewportTransform.scale = Math.min(this.viewportTransform.scale * 1.1, 5);
     this.clearCanvas();
@@ -179,7 +175,6 @@ export class Game {
     this.clearCanvas();
   }
 
-  // 🆕 Pan (right mouse drag or hold space)
   panStart = (e: MouseEvent) => {
     const isHandTool = this.selectedTool === "hand";
     if (this.spacePressed || isHandTool) {
@@ -317,10 +312,7 @@ export class Game {
         this.ctx.closePath();
       }
     } else if (this.selectedTool === "pencil") {
-      // add to path
       this.currentPath.push({ x: worldX, y: worldY });
-
-      // draw segment
       const len = this.currentPath.length;
       if (len > 1) {
         const prev = this.currentPath[len - 2];

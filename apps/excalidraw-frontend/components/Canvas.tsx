@@ -39,6 +39,7 @@ export function Canvas({
     }}>
         <canvas ref={canvasRef} width={window.innerWidth} height={window.innerHeight} ></canvas>
         <Topbar setSelectedTool={setSelectedTool} selectedTool={selectedTool} game={game} />
+        <Bottombar setSelectedTool={setSelectedTool} selectedTool={selectedTool} game={game}/>
     </div>
 }
 
@@ -47,7 +48,6 @@ function Topbar({ selectedTool, setSelectedTool, game }: {
     setSelectedTool: (s: Tool) => void,
     game?: Game;
 }) {
-    const [gameInstance, setGameInstance] = useState<Game | null>(null);
     return <div style={{
         position: "fixed",
         top: 10,
@@ -57,7 +57,7 @@ function Topbar({ selectedTool, setSelectedTool, game }: {
             <IconButton
                 onClick={() => setSelectedTool("hand")}
                 activated={selectedTool === "hand"}
-                icon={<Hand/>}
+                icon={<Hand />}
             />
 
             <IconButton
@@ -74,11 +74,22 @@ function Topbar({ selectedTool, setSelectedTool, game }: {
             <IconButton onClick={() => {
                 setSelectedTool("circle")
             }} activated={selectedTool === "circle"} icon={<Circle />}></IconButton>
-            <IconButton activated={false} onClick={() => game?.zoomIn()} icon={<Plus/>} />
-            <IconButton activated={false} onClick={() => game?.zoomOut()} icon={<Minus/>} />
         </div>
     </div>
 }
 
+function Bottombar({ game }: {
+    game?: Game;
+}){
+    return <div style={{position: "fixed",
+        bottom: 10,
+        left: 10,
+        }}>
+        <div className="flex gap-t">
+            <IconButton activated={false} onClick={() => game?.zoomIn()} icon={<Plus />} />
+            <IconButton activated={false} onClick={() => game?.zoomOut()} icon={<Minus />} />
+        </div>
+    </div>
+}
 
 //it renders the canvas
