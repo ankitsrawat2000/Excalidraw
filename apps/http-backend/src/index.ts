@@ -130,7 +130,7 @@ app.get("/api/v1/chats/:roomId", async (req, res) => {
         const roomId = Number(req.params.roomId);
         console.log(req.params.roomId);
 
-        //hitting the db and getting top 50 messages
+        //hitting the db and getting top 1000 messages
         const messages = await prismaClient.chat.findMany({
             where: {
                 roomId: roomId
@@ -176,5 +176,35 @@ app.get("/api/v1/room/:slug", async (req, res) => {
         room
     })
 })
+
+//get all rooms endpoint
+app.get("/api/v1/rooms/:adminId", async (req, res) => {
+    
+    const adminId = req.params.adminId;
+    console.log(adminId);
+    try {
+        const rooms = await prismaClient.room.findMany({
+            where: {
+                adminId: adminId, // filter by adminId
+            },
+            orderBy: {
+                createdAt: "desc"
+            },
+            include: {
+                admin: {
+                    select: {
+                        name: true
+                    }
+                }
+            }
+        });
+        res.json({ rooms });
+    } catch (e : any) {
+        res.status(500).json({
+            message: "Error fetching rooms",
+            msg: e.message
+        });
+    }
+});
 
 app.listen(3001);
