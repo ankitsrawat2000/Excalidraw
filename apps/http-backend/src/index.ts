@@ -151,6 +151,19 @@ app.get("/api/v1/chats/:roomId", async (req, res) => {
     }
 })
 
+app.delete("/api/v1/chats/:id", async (req, res) => {
+    try {
+      const id = Number(req.params.id);
+      await prismaClient.chat.delete({
+        where: { id },
+      });
+      res.json({ message: `deleted ${id}` });
+    } catch (e) {
+      res.status(500).json({ message: "Error deleting message" });
+    }
+  });
+  
+
 //given a slug return a roomid. when the user comes they will come to /room/chat-room-1
 app.get("/api/v1/room/:slug", async (req, res) => {
     const slug = req.params.slug;

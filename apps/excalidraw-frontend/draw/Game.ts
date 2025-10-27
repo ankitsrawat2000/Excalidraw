@@ -1,5 +1,7 @@
+import { HTTP_BACKEND } from "@/config";
 import { getExistingShapes } from "./http";
 import { Tool } from "@/components/Canvas";
+import axios from "axios";
 
 type Shape =
   | {
@@ -39,6 +41,8 @@ export class Game {
 
   private spacePressed = false;
 
+  private undoStack: Shape[] = [];
+  private redoStack: Shape[] = [];
 
   constructor(canvas: HTMLCanvasElement, roomId: string, socket: WebSocket) {
     this.canvas = canvas;
@@ -83,7 +87,8 @@ export class Game {
   
 
   async init() {
-    this.existingShapes = await getExistingShapes(this.roomId);
+    const shapes = await getExistingShapes(this.roomId);
+    this.existingShapes = shapes.reverse();
     this.clearCanvas();
   }
 
@@ -213,6 +218,40 @@ export class Game {
     this.canvas.addEventListener("mouseleave", this.panEnd);
   }
 
+  private addShape(shape: Shape) {
+    this.existingShapes.push(shape);
+    this.undoStack.push(shape);
+    this.redoStack = [];
+    this.clearCanvas();
+  }
+
+  async undo() {
+
+    if (this.existingShapes.length === 0) return;
+    const shape = this.existingShapes.pop()!;
+    this.redoStack.push(shape);
+    this.clearCanvas();
+  
+    if ((shape as any).id) {
+      console.log(shape);
+      await axios.delete(`${HTTP_BACKEND}/api/v1/chats/${(shape as any).id}`);
+    }
+  }
+  
+
+  redo() {
+    if (this.redoStack.length === 0) return;
+    const shape = this.redoStack.pop()!;
+    this.existingShapes.push(shape);
+    this.socket.send(
+      JSON.stringify({
+        type: "chat",
+        message: JSON.stringify({ shape }),
+        roomId: this.roomId,
+      })
+    );
+    this.clearCanvas();
+  }
 
   mouseDownHandler = (e: MouseEvent) => {
     if (this.spacePressed || this.isPanning) return;
@@ -270,7 +309,7 @@ export class Game {
 
     if (!shape) return;
 
-    this.existingShapes.push(shape);
+    this.addShape(shape); 
     this.socket.send(
       JSON.stringify({
         type: "chat",
