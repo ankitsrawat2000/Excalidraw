@@ -64,12 +64,14 @@ export function RoomsList() {
         }
       );
 
+      const id = res.data.roomId;
+
       await fetchRooms(adminId); // ✅ FIXED: pass adminId
       setNewRoomName("");
       setShowCreateModal(false);
 
       // Navigate to the new room’s page
-      router.push(`/canvas/${newRoomName}`);
+      router.push(`/canvas/${id}`);
     } catch (err: any) {
       alert(err.response?.data?.message || "Failed to create room");
     } finally {
@@ -77,8 +79,8 @@ export function RoomsList() {
     }
   };
 
-  const joinRoom = (slug: string) => {
-    router.push(`/canvas/${slug}`);
+  const joinRoom = (id: number) => {
+    router.push(`/canvas/${id}`);
   };
 
   const handleLogout = () => {
@@ -124,7 +126,7 @@ export function RoomsList() {
               <div
                 key={room.id}
                 className="bg-white rounded-lg shadow hover:shadow-lg transition cursor-pointer p-6"
-                onClick={() => joinRoom(room.slug)}
+                onClick={() => joinRoom(room.id)}
               >
                 <h3 className="text-xl font-semibold text-gray-900 mb-2">
                   {room.slug}
