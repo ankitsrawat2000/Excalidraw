@@ -31,6 +31,7 @@ function checkUser(token: string) : string | null{
 
   try{
     const decoded = jwt.verify(token, JWT_SECRET); //decoded is payload
+    console.log("checkUser",decoded);
     if(typeof decoded == "string"){
       return null;
     }

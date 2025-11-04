@@ -1,123 +1,159 @@
-import { Button } from "@repo/ui/button";
-import { Card } from "@repo/ui/card";
-import { Pencil, Share2, Users2, Sparkles, Github, Download } from "lucide-react";
-import Link from "next/link";
+import { Pencil, Layers, Share2, Zap, Users, Lock } from 'lucide-react';
+import Link from 'next/link';
 
 function App() {
   return (
-    <div className="min-h-screen bg-background">
-      {/* Hero Section */}
-      <header className="relative overflow-hidden">
-        <div className="container mx-auto px-4 py-16 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+      <nav className="bg-white/80 backdrop-blur-sm border-b border-slate-200 sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
+            <div className="flex items-center gap-2">
+              <Pencil className="w-8 h-8 text-blue-600" />
+              <span className="text-2xl font-bold text-slate-900">DrawFlow</span>
+            </div>
+            <div className="flex items-center gap-4">
+              <button className="text-slate-600 hover:text-slate-900 font-medium transition-colors">
+              <Link href="/signin">Sign In</Link>
+              </button>
+              <button className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-all hover:shadow-lg font-medium">
+                Get Started
+              </button>
+            </div>
+          </div>
+        </div>
+      </nav>
+
+      <main>
+        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-24">
           <div className="text-center">
-            <h1 className="text-4xl font-bold tracking-tight sm:text-6xl text-foreground">
-              Collaborative Whiteboarding
-              <span className="text-primary block">Made Simple</span>
+            <h1 className="text-6xl font-bold text-slate-900 mb-6 leading-tight">
+              Create Beautiful Diagrams
+              <br />
+              <span className="text-blue-600">In Seconds</span>
             </h1>
-            <p className="mx-auto mt-6 max-w-2xl text-lg text-muted-foreground">
-              Create, collaborate, and share beautiful diagrams and sketches with our intuitive drawing tool. 
-              No sign-up required.
+            <p className="text-xl text-slate-600 mb-12 max-w-2xl mx-auto leading-relaxed">
+              A powerful, intuitive drawing tool for sketching diagrams, wireframes, and visual ideas.
+              Collaborate in real-time with your team.
             </p>
-            <div className="mt-10 flex items-center justify-center gap-x-6">
-              <Link href="/signin">
-                <Button variant={"primary"} size="lg" className="h-12 px-6">
-                  Sign in
-                  <Pencil className="ml-2 h-4 w-4" />
-                </Button>
-              </Link>
-              <Link href="/signup">
-                <Button variant="outline" size="lg" className="h-12 px-6">
-                  Sign up
-                </Button>
-              </Link>
+            <div className="flex gap-4 justify-center">
+              <button className="bg-blue-600 text-white px-8 py-4 rounded-lg hover:bg-blue-700 transition-all hover:shadow-xl font-semibold text-lg">
+                Start Drawing Now
+              </button>
+              <button className="bg-white text-slate-700 px-8 py-4 rounded-lg hover:bg-slate-50 transition-all border-2 border-slate-200 font-semibold text-lg">
+                Watch Demo
+              </button>
             </div>
           </div>
-        </div>
-      </header>
 
-      {/* Features Section */}
-      <section className="py-24 bg-muted/50">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 gap-12 sm:grid-cols-2 lg:grid-cols-3">
-            <Card className="p-6 border-2 hover:border-primary transition-colors">
-              <div className="flex items-center gap-4">
-                <div className="p-2 rounded-lg bg-primary/10">
-                  <Share2 className="h-6 w-6 text-primary" />
-                </div>
-                <h3 className="text-xl font-semibold">Real-time Collaboration</h3>
+          <div className="mt-20 bg-white rounded-2xl shadow-2xl p-8 border border-slate-200">
+            <div className="aspect-video bg-gradient-to-br from-blue-50 to-slate-50 rounded-xl flex items-center justify-center">
+              <div className="text-center">
+                <Layers className="w-24 h-24 text-blue-600 mx-auto mb-4 opacity-40" />
+                <p className="text-slate-400 text-lg">Canvas Preview</p>
               </div>
-              <p className="mt-4 text-muted-foreground">
-                Work together with your team in real-time. Share your drawings instantly with a simple link.
-              </p>
-            </Card>
-
-            <Card className="p-6 border-2 hover:border-primary transition-colors">
-              <div className="flex items-center gap-4">
-                <div className="p-2 rounded-lg bg-primary/10">
-                  <Users2 className="h-6 w-6 text-primary" />
-                </div>
-                <h3 className="text-xl font-semibold">Multiplayer Editing</h3>
-              </div>
-              <p className="mt-4 text-muted-foreground">
-                Multiple users can edit the same canvas simultaneously. See who's drawing what in real-time.
-              </p>
-            </Card>
-
-            <Card className="p-6 border-2 hover:border-primary transition-colors">
-              <div className="flex items-center gap-4">
-                <div className="p-2 rounded-lg bg-primary/10">
-                  <Sparkles className="h-6 w-6 text-primary" />
-                </div>
-                <h3 className="text-xl font-semibold">Smart Drawing</h3>
-              </div>
-              <p className="mt-4 text-muted-foreground">
-                Intelligent shape recognition and drawing assistance helps you create perfect diagrams.
-              </p>
-            </Card>
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* CTA Section */}
-      <section className="py-24">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="bg-primary rounded-3xl p-8 sm:p-16">
-            <div className="mx-auto max-w-2xl text-center">
-              <h2 className="text-3xl font-bold tracking-tight text-primary-foreground sm:text-4xl">
-                Ready to start creating?
+        <section className="bg-white py-24 border-y border-slate-200">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center mb-16">
+              <h2 className="text-4xl font-bold text-slate-900 mb-4">
+                Everything You Need
               </h2>
-              <p className="mx-auto mt-6 max-w-xl text-lg text-primary-foreground/80">
-                Join thousands of users who are already creating amazing diagrams and sketches.
+              <p className="text-xl text-slate-600">
+                Powerful features for seamless diagramming
               </p>
-              <div className="mt-10 flex items-center justify-center gap-x-6">
-                <Button size="lg" variant="secondary" className="h-12 px-6">
-                  Open Canvas
-                  <Pencil className="ml-2 h-4 w-4" />
-                </Button>
-                <Button variant="outline" size="lg" className="h-12 px-6 bg-transparent text-primary-foreground border-primary-foreground hover:bg-primary-foreground hover:text-primary">
-                  View Gallery
-                </Button>
+            </div>
+
+            <div className="grid md:grid-cols-3 gap-8">
+              <div className="p-8 rounded-xl bg-gradient-to-br from-blue-50 to-white border border-blue-100 hover:shadow-lg transition-shadow">
+                <div className="w-14 h-14 bg-blue-600 rounded-lg flex items-center justify-center mb-6">
+                  <Zap className="w-7 h-7 text-white" />
+                </div>
+                <h3 className="text-xl font-bold text-slate-900 mb-3">Lightning Fast</h3>
+                <p className="text-slate-600 leading-relaxed">
+                  Instant load times and smooth performance. Create complex diagrams without any lag or delays.
+                </p>
+              </div>
+
+              <div className="p-8 rounded-xl bg-gradient-to-br from-emerald-50 to-white border border-emerald-100 hover:shadow-lg transition-shadow">
+                <div className="w-14 h-14 bg-emerald-600 rounded-lg flex items-center justify-center mb-6">
+                  <Users className="w-7 h-7 text-white" />
+                </div>
+                <h3 className="text-xl font-bold text-slate-900 mb-3">Real-time Collaboration</h3>
+                <p className="text-slate-600 leading-relaxed">
+                  Work together with your team in real-time. See changes as they happen and brainstorm together.
+                </p>
+              </div>
+
+              <div className="p-8 rounded-xl bg-gradient-to-br from-purple-50 to-white border border-purple-100 hover:shadow-lg transition-shadow">
+                <div className="w-14 h-14 bg-purple-600 rounded-lg flex items-center justify-center mb-6">
+                  <Share2 className="w-7 h-7 text-white" />
+                </div>
+                <h3 className="text-xl font-bold text-slate-900 mb-3">Easy Sharing</h3>
+                <p className="text-slate-600 leading-relaxed">
+                  Export to PNG, SVG, or share with a link. Integrate seamlessly into your workflow.
+                </p>
+              </div>
+
+              <div className="p-8 rounded-xl bg-gradient-to-br from-amber-50 to-white border border-amber-100 hover:shadow-lg transition-shadow">
+                <div className="w-14 h-14 bg-amber-600 rounded-lg flex items-center justify-center mb-6">
+                  <Layers className="w-7 h-7 text-white" />
+                </div>
+                <h3 className="text-xl font-bold text-slate-900 mb-3">Infinite Canvas</h3>
+                <p className="text-slate-600 leading-relaxed">
+                  Never run out of space. Pan and zoom freely on an unlimited canvas for your ideas.
+                </p>
+              </div>
+
+              <div className="p-8 rounded-xl bg-gradient-to-br from-rose-50 to-white border border-rose-100 hover:shadow-lg transition-shadow">
+                <div className="w-14 h-14 bg-rose-600 rounded-lg flex items-center justify-center mb-6">
+                  <Lock className="w-7 h-7 text-white" />
+                </div>
+                <h3 className="text-xl font-bold text-slate-900 mb-3">Privacy First</h3>
+                <p className="text-slate-600 leading-relaxed">
+                  Your data is encrypted and secure. Choose to work offline or sync with the cloud.
+                </p>
+              </div>
+
+              <div className="p-8 rounded-xl bg-gradient-to-br from-cyan-50 to-white border border-cyan-100 hover:shadow-lg transition-shadow">
+                <div className="w-14 h-14 bg-cyan-600 rounded-lg flex items-center justify-center mb-6">
+                  <Pencil className="w-7 h-7 text-white" />
+                </div>
+                <h3 className="text-xl font-bold text-slate-900 mb-3">Hand-drawn Style</h3>
+                <p className="text-slate-600 leading-relaxed">
+                  Beautiful hand-drawn aesthetics that make your diagrams stand out from the rest.
+                </p>
               </div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* Footer */}
-      <footer className="border-t">
-        <div className="container mx-auto px-4 py-12 sm:px-6 lg:px-8">
-          <div className="flex flex-col items-center justify-between gap-6 sm:flex-row">
-            <p className="text-sm text-muted-foreground">
-              © 2024 Excalidraw Clone. All rights reserved.
+        <section className="py-24 bg-gradient-to-br from-blue-600 to-blue-700">
+          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <h2 className="text-4xl font-bold text-white mb-6">
+              Ready to Start Creating?
+            </h2>
+            <p className="text-xl text-blue-100 mb-10 leading-relaxed">
+              Join thousands of teams using DrawFlow to bring their ideas to life.
+              No credit card required.
             </p>
-            <div className="flex space-x-6">
-              <a href="https://github.com" className="text-muted-foreground hover:text-primary">
-                <Github className="h-5 w-5" />
-              </a>
-              <a href="#" className="text-muted-foreground hover:text-primary">
-                <Download className="h-5 w-5" />
-              </a>
+            <button className="bg-white text-blue-600 px-10 py-4 rounded-lg hover:bg-blue-50 transition-all hover:shadow-2xl font-bold text-lg">
+              Get Started for Free
+            </button>
+          </div>
+        </section>
+      </main>
+
+      <footer className="bg-slate-900 text-slate-300 py-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center">
+            <div className="flex items-center gap-2">
+              <Pencil className="w-6 h-6 text-blue-400" />
+              <span className="text-xl font-bold text-white">DrawFlow</span>
             </div>
+            <p className="text-sm">© 2025 DrawFlow. All rights reserved.</p>
           </div>
         </div>
       </footer>
