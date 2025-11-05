@@ -72,13 +72,15 @@ export class Game {
 
   }
 
-  setTool(tool: "circle" | "pencil" | "rect" | "hand" | null) {
+  setTool(tool: "circle" | "pencil" | "rect" | "hand" | "eraser" | null) {
     this.selectedTool = tool;
     this.clicked = false;
     this.isPanning = false;
   
     if (tool === "hand") {
       this.canvas.style.cursor = "grab";
+    }  else if (tool === "eraser") {
+      this.canvas.style.cursor = "crosshair";
     } else {
       this.canvas.style.cursor = "default";
       this.spacePressed = false;
@@ -363,7 +365,64 @@ export class Game {
         this.ctx.stroke();
         this.ctx.closePath();
       }
+    } else if (this.selectedTool === "eraser") {
+      const eraseRadius = 10; // size of eraser "brush"
+      const toErase: number[] = [];
+    
+      // find shapes that are near the current cursor
+      this.existingShapes.forEach((shape, index) => {
+        if (shape.type === "rect") {
+          if (
+            worldX > shape.x - eraseRadius &&
+            worldX < shape.x + shape.width + eraseRadius &&
+            worldY > shape.y - eraseRadius &&
+            worldY < shape.y + shape.height + eraseRadius
+          ) {
+            toErase.push(index);
+          }
+        } else if (shape.type === "circle") {
+          const dx = worldX - shape.centerX;
+          const dy = worldY - shape.centerY;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < shape.radius + eraseRadius) {
+            toErase.push(index);
+          }
+        } else if (shape.type === "pencil") {
+          // check if any segment point is close
+          for (let i = 0; i < shape.points.length; i++) {
+            const p = shape.points[i];
+            const dx = worldX - p.x;
+            const dy = worldY - p.y;
+            if (Math.sqrt(dx * dx + dy * dy) < eraseRadius) {
+              toErase.push(index);
+              break;
+            }
+          }
+        }
+      });
+    
+      // remove erased shapes
+      if (toErase.length > 0) {
+        // push deleted shapes to undoStack for restoration
+        const removed = toErase.map(i => this.existingShapes[i]);
+        this.undoStack.push(...removed);
+        console.log("undoStack",this.undoStack);
+        this.existingShapes = this.existingShapes.filter((_, i) => !toErase.includes(i));
+        console.log("existingShapes", this.existingShapes);
+        this.clearCanvas();
+
+        removed.forEach(async (shape) => {
+          if ((shape as any).id) {
+            try {
+              await axios.delete(`${HTTP_BACKEND}/api/v1/chats/${(shape as any).id}`);
+            } catch (err) {
+              console.error("Failed to delete shape", (shape as any).id, err);
+            }
+          }
+        });
+      }
     }
+    
   };
 
   initMouseHandlers() {
