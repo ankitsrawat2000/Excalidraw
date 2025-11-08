@@ -231,7 +231,9 @@ export class Game {
 
     if (this.existingShapes.length === 0) return;
     const shape = this.existingShapes.pop()!;
+    console.log("before", this.redoStack);
     this.redoStack.push(shape);
+    console.log("after",this.redoStack);
     this.clearCanvas();
   
     if ((shape as any).id) {

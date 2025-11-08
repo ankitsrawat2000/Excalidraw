@@ -11,11 +11,14 @@
   "dependencies": {
     "@repo/ui": "workspace:*",
     "axios": "^1.7.9",
+    "clsx": "^2.1.1",
     "jwt-decode": "^4.0.0",
     "lucide-react": "^0.474.0",
+    "motion": "^12.23.24",
     "next": "15.1.6",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "tailwind-merge": "^3.3.1",
     "tailwindcss-animate": "^1.0.7"
   },
   "devDependencies": {
