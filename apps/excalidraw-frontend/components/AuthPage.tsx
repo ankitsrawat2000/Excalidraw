@@ -3,6 +3,7 @@
 import { useState } from "react";
 import axios from "axios";
 import { useRouter } from "next/navigation";
+import { HTTP_BACKEND } from "@/config";
 
 export function AuthPage({ isSignin }: { isSignin: boolean }) {
   const [email, setEmail] = useState("");
@@ -19,7 +20,7 @@ export function AuthPage({ isSignin }: { isSignin: boolean }) {
     try {
       if (isSignin) {
         // Sign In
-        const res = await axios.post("http://localhost:3001/api/v1/signin", {
+        const res = await axios.post(`${HTTP_BACKEND}/api/v1/signin`, {
           username: email,
           password,
         });
@@ -31,7 +32,7 @@ export function AuthPage({ isSignin }: { isSignin: boolean }) {
         }, 500);
       } else {
         // Sign Up
-        const res = await axios.post("http://localhost:3001/api/v1/signup", {
+        const res = await axios.post(`${HTTP_BACKEND}/api/v1/signup`, {
           username: email,
           password,
           name,
@@ -50,9 +51,9 @@ export function AuthPage({ isSignin }: { isSignin: boolean }) {
   };
 
   return (
-    <div className="w-screen h-screen flex justify-center items-center bg-gray-100">
-      <div className="p-8 bg-white shadow-lg rounded-xl w-[360px]">
-        <h1 className="text-2xl font-semibold mb-4 text-center">
+    <div className="w-screen h-screen flex justify-center items-center bg-gray-950">
+      <div className="p-8 bg-[#1c2029] shadow-lg rounded-xl w-[360px]">
+        <h1 className="text-2xl text-[#68707c] mb-4 text-center">
           {isSignin ? "Sign In" : "Create Account"}
         </h1>
 
@@ -92,7 +93,7 @@ export function AuthPage({ isSignin }: { isSignin: boolean }) {
         <button
           onClick={handleSubmit}
           disabled={loading}
-          className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg transition disabled:opacity-50"
+          className="w-full bg-indigo-600 hover:bg-indigo-500 text-white py-2 rounded-lg transition disabled:opacity-50"
         >
           {loading ? "Processing..." : isSignin ? "Sign In" : "Sign Up"}
         </button>

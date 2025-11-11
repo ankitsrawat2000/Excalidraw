@@ -89,21 +89,21 @@ export function RoomsList() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-8">
+    <div className="min-h-screen bg-gray-950 p-8">
       <div className="max-w-6xl mx-auto">
         <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">My Rooms</h1>
+          <h1 className="text-3xl text-white">My Rooms</h1>
           <div className="flex gap-3">
             <button
               onClick={() => setShowCreateModal(true)}
-              className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition"
+              className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-lg transition"
             >
               <Plus className="h-5 w-5" />
               Create Room
             </button>
             <button
               onClick={handleLogout}
-              className="flex items-center gap-2 bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition"
+              className="flex items-center gap-2 bg-red-600 hover:bg-red-500 text-white px-4 py-2 rounded-lg transition"
             >
               <LogOut className="h-5 w-5" />
               Logout
@@ -116,7 +116,7 @@ export function RoomsList() {
             <p className="text-gray-500">Loading rooms...</p>
           </div>
         ) : rooms.length === 0 ? (
-          <div className="text-center py-12 bg-white rounded-lg shadow">
+          <div className="text-center py-12 bg-[#1c2029] rounded-lg shadow">
             <Users className="h-12 w-12 mx-auto text-gray-400 mb-4" />
             <p className="text-gray-500">No rooms yet. Create one to get started!</p>
           </div>
@@ -149,7 +149,7 @@ export function RoomsList() {
       {showCreateModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
-            <h2 className="text-xl font-semibold mb-4">Create New Room</h2>
+            <h2 className="text-xl mb-4">Create New Room</h2>
             <input
               type="text"
               placeholder="Room name"
@@ -164,7 +164,7 @@ export function RoomsList() {
               <button
                 onClick={createRoom}
                 disabled={creating || !newRoomName.trim()}
-                className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg transition disabled:opacity-50"
+                className="flex-1 bg-indigo-600 hover:bg-indigo-500 text-white py-2 rounded-lg transition disabled:opacity-50"
               >
                 {creating ? "Creating..." : "Create"}
               </button>
