@@ -2,20 +2,22 @@
   "$schema": "https://turbo.build/schema.json",
   "pipeline": {
     "build": {
-      "dependsOn": ["^build"],
-      "inputs": ["$TURBO_DEFAULT$", ".env*"],
+      "dependsOn": [
+        "^build"
+      ],
       "outputs": [
-        "apps/excalidraw-frontend/.next/**",
-        "apps/http-backend/dist/**",
-        "apps/ws-backend/dist/**",
-        "!apps/excalidraw-frontend/.next/cache/**"
+        ".next/**"
       ]
     },
     "lint": {
-      "dependsOn": ["^lint"]
+      "dependsOn": [
+        "^lint"
+      ]
     },
     "check-types": {
-      "dependsOn": ["^check-types"]
+      "dependsOn": [
+        "^check-types"
+      ]
     },
     "dev": {
       "cache": false,
