@@ -17,19 +17,24 @@ model User{
   //an User can have multiple rooms (so rooms is an array of Room Schema)
   chats    Chat[]
   //every user would have sent multiple chat messages
+  roomMembers RoomMember[]
+
 }
 
 model Room{
-  id        Int      @id @default(autoincrement())
-  slug      String   @unique
-  createdAt DateTime @default(now())
-  adminId   String
-  admin     User      @relation(fields: [adminId], references: [id]) //add fkey Room(adminId) to User(id)
+  id          Int      @id @default(autoincrement()) 
+  name        String   
+  slug        String   @unique @default(uuid())
+  inviteCode String    @unique @default(uuid())
+  createdAt   DateTime @default(now())
+  adminId     String
+  admin       User      @relation(fields: [adminId], references: [id]) //add fkey Room(adminId) to User(id)
   //relationship between adminId and User
   //a single room can have a single admin(if many admin then many-to-many relationship)
   chats     Chat[]
   //every chat message will have one room
   //every room can have multiple chat messages
+  members RoomMember[]
 
 }
 
@@ -43,4 +48,16 @@ model Chat{
   user    User      @relation(fields: [userId], references: [id])
   //every chat will have associated user
 }
+
+model RoomMember {
+  id       Int    @id @default(autoincrement())
+  userId   String
+  roomId   Int
+
+  user     User   @relation(fields: [userId], references: [id])
+  room     Room   @relation(fields: [roomId], references: [id])
+
+  @@unique([userId, roomId])  // one membership per user per room
+}
+
 

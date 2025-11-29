@@ -5,11 +5,11 @@ import axios from "axios";
 import { HTTP_BACKEND } from "@/config";
 import { Plus, Users, Calendar, LogOut } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { getAdminId } from "@/utils/auth"; // path where you put that helper
 
 interface Room {
   id: number;
   slug: string;
+  name: string;
   createdAt: string;
   admin: {
     name: string;
@@ -24,22 +24,27 @@ export function RoomsList() {
   const [creating, setCreating] = useState(false);
   const router = useRouter();
 
-  const [adminId, setAdminId] = useState<string | null>(null);
-
   useEffect(() => {
-    const id = getAdminId();
-    if (!id) {
+    const token = localStorage.getItem("token");
+    if (!token) {
       router.push("/signin");
       return;
     }
-    setAdminId(id);
-    fetchRooms(id);
+
+    fetchRooms();
   }, []);
 
-  const fetchRooms = async (adminId: string) => {
+  const fetchRooms = async () => {
     try {
-      const res = await axios.get(`${HTTP_BACKEND}/api/v1/rooms/${adminId}`);
-      setRooms(res.data.rooms);
+      const token = localStorage.getItem("token");
+
+      const res = await axios.get(`${HTTP_BACKEND}/api/v1/rooms`, {
+        headers: {
+          Authorization: `${token}`,
+        },
+      });
+
+      setRooms(res.data.rooms || []);
     } catch (err) {
       console.error("Failed to fetch rooms:", err);
     } finally {
@@ -48,7 +53,7 @@ export function RoomsList() {
   };
 
   const createRoom = async () => {
-    if (!newRoomName.trim() || creating || !adminId) return;
+    if (!newRoomName.trim() || creating) return;
 
     setCreating(true);
     const token = localStorage.getItem("token");
@@ -59,19 +64,16 @@ export function RoomsList() {
         { name: newRoomName },
         {
           headers: {
-            Authorization: token || "",
+            Authorization: `${token}`,
           },
         }
       );
 
-      const id = res.data.roomId;
-
-      await fetchRooms(adminId); // ✅ FIXED: pass adminId
+      await fetchRooms();
       setNewRoomName("");
       setShowCreateModal(false);
 
-      // Navigate to the new room’s page
-      router.push(`/canvas/${id}`);
+      router.push(`/canvas/${res.data.roomId}`);
     } catch (err: any) {
       alert(err.response?.data?.message || "Failed to create room");
     } finally {
@@ -118,7 +120,7 @@ export function RoomsList() {
         ) : rooms.length === 0 ? (
           <div className="text-center py-12 bg-[#1c2029] rounded-lg shadow">
             <Users className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-            <p className="text-gray-500">No rooms yet. Create one to get started!</p>
+            <p className="text-gray-500">No rooms yet. Create one or join via invite link.</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -129,7 +131,7 @@ export function RoomsList() {
                 onClick={() => joinRoom(room.id)}
               >
                 <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                  {room.slug}
+                  {room.name}
                 </h3>
                 <div className="flex items-center text-sm text-gray-500 mb-4">
                   <Users className="h-4 w-4 mr-1" />
@@ -145,7 +147,6 @@ export function RoomsList() {
         )}
       </div>
 
-      {/* Create Room Modal */}
       {showCreateModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
@@ -184,4 +185,3 @@ export function RoomsList() {
     </div>
   );
 }
-
