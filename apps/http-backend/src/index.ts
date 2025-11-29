@@ -13,7 +13,6 @@ app.use(cors())
 app.post("/api/v1/signup", async (req, res) => {
     const parsedData = CreateUserSchema.safeParse(req.body);//can use parse 1:01 pt 2
     if (!parsedData.success) {
-        console.log(parsedData.error);
         res.json({
             message: "Incorrect inputs"
         })
@@ -95,7 +94,6 @@ app.post("/api/v1/signin", async (req, res) => {
 app.post("/api/v1/room", middleware, async (req, res) => {
     const parsedData = CreateRoomSchema.safeParse(req.body);
     if (!parsedData.success) {
-        console.log(parsedData.error);
         res.json({
             message: "Incorrect inputs"
         })
@@ -128,7 +126,6 @@ app.get("/api/v1/chats/:roomId", async (req, res) => {
 
     try {
         const roomId = Number(req.params.roomId);
-        console.log(req.params.roomId);
 
         //hitting the db and getting top 1000 messages
         const messages = await prismaClient.chat.findMany({
@@ -144,7 +141,6 @@ app.get("/api/v1/chats/:roomId", async (req, res) => {
             messages
         })
     } catch (e) {
-        console.log(e);
         res.json({
             messages: []
         })
@@ -181,7 +177,6 @@ app.get("/api/v1/room/:slug", async (req, res) => {
 app.get("/api/v1/rooms/:adminId", async (req, res) => {
     
     const adminId = req.params.adminId;
-    console.log(adminId);
     try {
         const rooms = await prismaClient.room.findMany({
             where: {

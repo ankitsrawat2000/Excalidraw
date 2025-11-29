@@ -26,7 +26,6 @@ export async function initDraw(canvas: HTMLCanvasElement, roomId: string, socket
         const ctx = canvas.getContext("2d");
 
         const existingShapes: Shape[] = await getExistingShapes(roomId);
-        console.log(existingShapes);
 
         if(!ctx){
             return
@@ -142,7 +141,6 @@ function clearCanvas(existingShapes: Shape[], canvas: HTMLCanvasElement, ctx: Ca
 }
 
 async function getExistingShapes(roomId: string){
-    console.log(roomId);
     const res = await axios.get(`${HTTP_BACKEND}/api/v1/chats/${roomId}`);
     const messages = res.data.messages;
 

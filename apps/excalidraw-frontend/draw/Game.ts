@@ -231,13 +231,10 @@ export class Game {
 
     if (this.existingShapes.length === 0) return;
     const shape = this.existingShapes.pop()!;
-    console.log("before", this.redoStack);
     this.redoStack.push(shape);
-    console.log("after",this.redoStack);
     this.clearCanvas();
   
     if ((shape as any).id) {
-      console.log(shape);
       await axios.delete(`${HTTP_BACKEND}/api/v1/chats/${(shape as any).id}`);
     }
   }
@@ -408,9 +405,7 @@ export class Game {
         // push deleted shapes to undoStack for restoration
         const removed = toErase.map(i => this.existingShapes[i]);
         this.undoStack.push(...removed);
-        console.log("undoStack",this.undoStack);
         this.existingShapes = this.existingShapes.filter((_, i) => !toErase.includes(i));
-        console.log("existingShapes", this.existingShapes);
         this.clearCanvas();
 
         removed.forEach(async (shape) => {

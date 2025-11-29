@@ -31,7 +31,6 @@ function checkUser(token: string) : string | null{
 
   try{
     const decoded = jwt.verify(token, JWT_SECRET); //decoded is payload
-    console.log("checkUser",decoded);
     if(typeof decoded == "string"){
       return null;
     }
@@ -92,8 +91,6 @@ wss.on('connection', function connection(ws, request) { //whenever a new client 
       user.rooms = user?.rooms.filter(x => x !== parsedData.roomId);
     }
 
-    console.log("message received");
-    console.log(parsedData);
 
     if(parsedData.type === "chat"){ //{type: "chat", message: "hi there", roomId: 123}
       const roomId = parsedData.roomId;
