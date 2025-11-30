@@ -5,12 +5,14 @@ import axios from "axios";
 import { HTTP_BACKEND } from "@/config";
 import { Plus, Users, Calendar, LogOut } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { getAdminId } from "@/utils/auth";
 
 interface Room {
   id: number;
   slug: string;
   name: string;
   createdAt: string;
+  adminId: string;
   admin: {
     name: string;
   };
@@ -23,6 +25,7 @@ export function RoomsList() {
   const [newRoomName, setNewRoomName] = useState("");
   const [creating, setCreating] = useState(false);
   const router = useRouter();
+  const currentUserId = getAdminId();
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -127,20 +130,52 @@ export function RoomsList() {
             {rooms.map((room) => (
               <div
                 key={room.id}
-                className="bg-white rounded-lg shadow hover:shadow-lg transition cursor-pointer p-6"
+                className="flex justify-between bg-white rounded-lg shadow hover:shadow-lg transition cursor-pointer p-6"
                 onClick={() => joinRoom(room.id)}
               >
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                  {room.name}
-                </h3>
-                <div className="flex items-center text-sm text-gray-500 mb-4">
-                  <Users className="h-4 w-4 mr-1" />
-                  Admin: {room.admin.name}
+                <div className="border">
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                    {room.name}
+                  </h3>
+                  <div className="flex items-center text-sm text-gray-500 mb-4">
+                    <Users className="h-4 w-4 mr-1" />
+                    Admin: {room.admin.name}
+                  </div>
+                  <div className="flex items-center text-sm text-gray-400">
+                    <Calendar className="h-4 w-4 mr-1" />
+                    {new Date(room.createdAt).toLocaleDateString()}
+                  </div>
                 </div>
-                <div className="flex items-center text-sm text-gray-400">
-                  <Calendar className="h-4 w-4 mr-1" />
-                  {new Date(room.createdAt).toLocaleDateString()}
+                <div>
+                  {currentUserId === room.adminId && (
+                    <button
+                      onClick={async (e) => {
+                        e.stopPropagation();
+
+                        try {
+                          const res = await axios.get(
+                            `${HTTP_BACKEND}/api/v1/room/${room.id}/invite`,
+                            {
+                              headers: {
+                                Authorization: `${localStorage.getItem("token")}`,
+                              },
+                            }
+                          );
+
+                          await navigator.clipboard.writeText(res.data.inviteLink);
+                          alert("Invite link copied!");
+                        } catch (err) {
+                          alert("Failed to copy link");
+                        }
+                      }}
+                      className="text-blue-600 hover:text-blue-800 underline ml-4"
+                    >
+                      Share Link
+                    </button>
+                  )}
+
                 </div>
+
               </div>
             ))}
           </div>
