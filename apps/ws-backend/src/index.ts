@@ -27,19 +27,19 @@ const users: User[] = []; //whenever a user connects to this websocket server we
 //   ws: socket 
 // }];
 
-function checkUser(token: string) : string | null{
+function checkUser(token: string): string | null {
 
-  try{
+  try {
     const decoded = jwt.verify(token, JWT_SECRET); //decoded is payload
-    if(typeof decoded == "string"){
+    if (typeof decoded == "string") {
       return null;
     }
-    if(!decoded || !decoded.userId){
+    if (!decoded || !decoded.userId) {
       return null;
     }
     return decoded.userId;
-  
-  } catch(e){
+
+  } catch (e) {
     return null;
   }
   return null;
@@ -48,17 +48,17 @@ function checkUser(token: string) : string | null{
 
 
 wss.on('connection', function connection(ws, request) { //whenever a new client connects on my websocket server 1:20 timestamp
-  
+
   const url = request.url; // ws://localhost:3000?token=123123
   //["ws://localhost:3000","token=123123"]
-  if(!url){
+  if (!url) {
     return;
   }
   const queryParams = new URLSearchParams(url.split('?')[1]);
   const token = queryParams.get('token') || "";
   const userId = checkUser(token);
 
-  if(userId == null){
+  if (userId == null) {
     ws.close();
     return null;
   }
@@ -68,52 +68,74 @@ wss.on('connection', function connection(ws, request) { //whenever a new client 
     rooms: [],
     ws
   })
-  
+
   ws.on('message', async function message(data) { //whenever a message comes from an end client (here data == {type: "join_room", roomId: 1})
-    
+
     let parsedData;
-    if(typeof data !== "string"){
+    if (typeof data !== "string") {
       parsedData = JSON.parse(data.toString());
-    } else{
+    } else {
       parsedData = JSON.parse(data);
     }
 
-    if(parsedData.type === "join_room"){
+    if (parsedData.type === "join_room") {
       const user = users.find(x => x.ws === ws); //find the user in global users array
       user?.rooms.push(parsedData.roomId);//1:45 pt 2
     }
 
-    if(parsedData.type === "leave_room"){
-      const user = users.find(x => x.ws === ws); 
-      if(!user){
+    if (parsedData.type === "leave_room") {
+      const user = users.find(x => x.ws === ws);
+      if (!user) {
         return;
       }
       user.rooms = user?.rooms.filter(x => x !== parsedData.roomId);
     }
 
 
-    if(parsedData.type === "chat"){ //{type: "chat", message: "hi there", roomId: 123}
+    if (parsedData.type === "chat") { //{type: "chat", message: "hi there", roomId: 123}
       const roomId = parsedData.roomId;
       const message = parsedData.message;//1:49 pt 2
 
-      await prismaClient.chat.create({
+      const created = await prismaClient.chat.create({
         data: {
-          roomId : Number(roomId),
+          roomId: Number(roomId),
           message,
-          userId
+          userId,
+          clientId: parsedData.clientId
         }
       }) //for a bigginer problem with this is db calls are very slow
 
       users.forEach(user => {
-        if(user.rooms.includes(roomId)){
+        if (user.rooms.includes(roomId)) {
           user.ws.send(JSON.stringify({
             type: "chat",
             message: message,
+            clientId: created.clientId,
             roomId
           }));
         }
       })
       //room authentication logic 1:51 pt 2
+    }
+
+    if (parsedData.type === "delete_shape") {
+      const roomId = parsedData.roomId;
+      const id = parsedData.id;
+      await prismaClient.chat.delete({
+        where: { clientId: parsedData.id }
+      });
+      
+      users.forEach(user => {
+        if (user.rooms.includes(roomId)) {
+          user.ws.send(JSON.stringify({
+            type: "delete_shape",
+            id,
+            roomId
+          }));
+        }
+      });
+
+      return;
     }
   });
 

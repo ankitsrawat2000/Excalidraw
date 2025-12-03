@@ -55,7 +55,7 @@ export class Game {
     this.init();
     this.initHandlers();
     this.initMouseHandlers();
-    this.initPanZoomHandlers(); 
+    this.initPanZoomHandlers();
     window.addEventListener("keydown", this.onKeyDown);
     window.addEventListener("keyup", this.onKeyUp);
 
@@ -76,17 +76,17 @@ export class Game {
     this.selectedTool = tool;
     this.clicked = false;
     this.isPanning = false;
-  
+
     if (tool === "hand") {
       this.canvas.style.cursor = "grab";
-    }  else if (tool === "eraser") {
+    } else if (tool === "eraser") {
       this.canvas.style.cursor = "crosshair";
     } else {
       this.canvas.style.cursor = "default";
       this.spacePressed = false;
     }
   }
-  
+
 
   async init() {
     const shapes = await getExistingShapes(this.roomId);
@@ -98,10 +98,25 @@ export class Game {
     this.socket.onmessage = (event) => {
       const message = JSON.parse(event.data);
 
-      if (message.type == "chat") {
-        const parsedShape = JSON.parse(message.message);
-        this.existingShapes.push(parsedShape.shape);
+      if (message.type === "chat") {
+        const parsed = JSON.parse(message.message);
+        parsed.shape.id = message.clientId;
+        const exists = this.existingShapes.some(
+          (s: any) => s.id === message.clientId
+        );
+        if (!exists) {
+          this.existingShapes.push(parsed.shape);
+        }
         this.clearCanvas();
+      }
+
+      if (message.type === "delete_shape") {
+        const { id } = message;
+        this.existingShapes = this.existingShapes.filter(
+          (shape: any) => shape.id !== id
+        );
+        this.clearCanvas();
+        return;
       }
     };
   }
@@ -207,8 +222,8 @@ export class Game {
   panEnd = () => {
     this.isPanning = false;
     this.canvas.style.cursor =
-    this.selectedTool === "hand" ? "grab" :
-    this.spacePressed ? "grab" : "default";
+      this.selectedTool === "hand" ? "grab" :
+        this.spacePressed ? "grab" : "default";
   };
 
 
@@ -228,17 +243,22 @@ export class Game {
   }
 
   async undo() {
-
     if (this.existingShapes.length === 0) return;
     const shape = this.existingShapes.pop()!;
     this.redoStack.push(shape);
     this.clearCanvas();
-  
+
     if ((shape as any).id) {
-      await axios.delete(`${HTTP_BACKEND}/api/v1/chats/${(shape as any).id}`);
+      this.socket.send(
+        JSON.stringify({
+          type: "delete_shape",
+          id: (shape as any).id,
+          roomId: this.roomId
+        })
+      );
     }
   }
-  
+
 
   redo() {
     if (this.redoStack.length === 0) return;
@@ -248,6 +268,7 @@ export class Game {
       JSON.stringify({
         type: "chat",
         message: JSON.stringify({ shape }),
+        clientId: (shape as any).id,
         roomId: this.roomId,
       })
     );
@@ -309,12 +330,15 @@ export class Game {
     }
 
     if (!shape) return;
+    const clientId = crypto.randomUUID();
+    (shape as any).id = clientId;
 
-    this.addShape(shape); 
+    this.addShape(shape);
     this.socket.send(
       JSON.stringify({
         type: "chat",
         message: JSON.stringify({ shape }),
+        clientId,       
         roomId: this.roomId,
       })
     );
@@ -367,7 +391,7 @@ export class Game {
     } else if (this.selectedTool === "eraser") {
       const eraseRadius = 10; // size of eraser "brush"
       const toErase: number[] = [];
-    
+
       // find shapes that are near the current cursor
       this.existingShapes.forEach((shape, index) => {
         if (shape.type === "rect") {
@@ -399,7 +423,7 @@ export class Game {
           }
         }
       });
-    
+
       // remove erased shapes
       if (toErase.length > 0) {
         // push deleted shapes to undoStack for restoration
@@ -408,18 +432,16 @@ export class Game {
         this.existingShapes = this.existingShapes.filter((_, i) => !toErase.includes(i));
         this.clearCanvas();
 
-        removed.forEach(async (shape) => {
-          if ((shape as any).id) {
-            try {
-              await axios.delete(`${HTTP_BACKEND}/api/v1/chats/${(shape as any).id}`);
-            } catch (err) {
-              console.error("Failed to delete shape", (shape as any).id, err);
-            }
-          }
+        removed.forEach(shape => {
+          this.socket.send(JSON.stringify({
+            type: "delete_shape",
+            id: (shape as any).id,
+            roomId: this.roomId
+          }));
         });
       }
     }
-    
+
   };
 
   initMouseHandlers() {

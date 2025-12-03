@@ -43,6 +43,7 @@ model Chat{
   roomId  Int
   message String
   userId  String
+  clientId  String   @unique   
   room    Room      @relation(fields: [roomId], references: [id])
   //every chat will be part of a room
   user    User      @relation(fields: [userId], references: [id])
